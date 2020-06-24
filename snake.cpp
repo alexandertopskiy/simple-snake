@@ -1,4 +1,8 @@
 #include <iostream>
+#include <termios.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <time.h>
 
 using namespace std;
 
@@ -68,9 +72,10 @@ void Draw() {
 				cout << "#";
 			if (i == y && j == x)
 				cout << "0";
-			if (i == thingY && j == thingX)
+			else if (i == thingY && j == thingX)
 				cout << "F";
-			cout << " ";
+			else
+				cout << " ";
 		}
 		cout << endl;
 	}
@@ -78,34 +83,51 @@ void Draw() {
 	for (int i = 0; i <= wigth; i++) 
 		cout << "#";
 	cout << endl; 
+
+	cout << "\nSCORE = " << score << endl;
+
+	usleep(150000);
 }
 
 void Input(){
+	char key = '\0'; //null
 	if (kbhit()) key = mygetch();
-    if ((key == 'q') || (key == 'Q')) break;
-    switch(key) {
-    	case 'a':
-    		dir = LEFT;
-    		break;
-    	case 'd':
-    		dir = RIGHT;
-    		break;
-    	case 'w':
-    		dir = UP;
-    		break;
-    	case 's':
-    		dir = DOWN;
-    		break;
-    	case 'x':
-    		gameover = true;
-    		break;
-
-
+    if (key == 'a' || key == 'A')
+    	dir = LEFT;
+    if (key == 'd' || key == 'D')
+    	dir = RIGHT;
+    if (key == 'w' || key == 'W')
+    	dir = UP;
+    if (key == 's' || key == 'S')
+    	dir = DOWN;
+    if (key == 'x' || key == 'X') {
+    	cout << "\nGAME OVER\n";
+		usleep(5000);
+		gameover = true;
     }
 }
 
 void Logic(){
+	if (dir == LEFT)
+		x--;
+	if (dir == RIGHT)
+		x++;
+	if (dir == UP)
+		y--;
+	if (dir == DOWN)
+		y++;
 
+
+	if (x > wigth || x < 0 || y > height || y < 0){
+    	cout << "\nGAME OVER\n";
+		usleep(5000);
+		gameover = true;
+    }
+    if (x == thingX && y == thingY) {
+    	score += 10;
+    	thingX = rand() % wigth;
+    	thingY = rand() % height;
+    }
 }
 
 int main () {
@@ -114,7 +136,6 @@ int main () {
 		Draw();
 		Input();
 		Logic();
-
 	}
 	return 0;
 }
