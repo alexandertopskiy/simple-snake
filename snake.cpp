@@ -19,7 +19,23 @@ void Setup(){
 }
 
 void Draw() {
+	system("clear");
+	for (int i = 0; i <= wigth; i++) 
+		cout << "#";
+	cout << endl;
 
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < wigth; j++) {
+			if (j==0 || j==wigth-1) 
+				cout << "#";
+			cout << " ";
+		}
+		cout << endl;
+	}
+
+	for (int i = 0; i <= wigth; i++) 
+		cout << "#";
+	cout << endl; 
 }
 
 void Input(){
