@@ -6,13 +6,18 @@
 
 using namespace std;
 
+int command;
 bool gameover; 
 const int wigth = 20, height = 20;
 int x, y, thingX, thingY, score;
+int speed, harder, speed_level;
 int tailX[100], tailY[100]; // координаты хвоста
 int nTail;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN, ENDGAME };
 eDirection dir;
+
+int prevX, prevY;
+int prev2X, prev2Y;
 
 //функции для проверки буфера. т.к. в unix нет <conio.h> и встроенных в нее kbhit и getch
 int kbhit(void){
@@ -51,15 +56,30 @@ int mygetch( ){
     tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
     return ch;
 }
+//МЕТОД ОБРАБОТКИ ОШИБОК ВВОДА (ПРОВЕРЯЕТ, ЧТОБЫ БЫЛИ ВВЕДЕНЫ ТОЛЬКО ЦИФРЫ, БЕЗ БУКВ) //ВОЗВРАЩАЕТ ПРАВИЛЬНО ВВЕДЕННОЕ ЧИСЛО
+int failure() {
+    int a;
+    while (!(cin >> a) || (cin.peek() != '\n'))
+    {
+        cin.clear();
+        while (cin.get() != '\n');
+        cout << "\n ОШИБКА ВВОДА. ПОВТОРИТЕ ВВОД: ";
+    }
+    return a;
+}
 
 void Setup(){
 	gameover = false;
 	dir = STOP;
+	speed = 300000; speed_level = 0;
 	x = wigth / 2 - 1;
 	y = height / 2 - 1;
 	thingX = rand() % wigth;
 	thingY = rand() % height;
 	score = 0;
+	prevX = tailX[0]; prevY = tailY[0];
+	tailX[0] = x; tailY[0] = y;
+	nTail = 0;
 }
 
 void Draw() {
@@ -95,11 +115,11 @@ void Draw() {
 		cout << "#";
 	cout << endl; 
 
-	cout << "\nSCORE = " << score << endl;
+	cout << "\nВАШ СЧЕТ: " << score << ", СКОРОСТЬ: " << speed_level << endl;
 
 	cout << "КООРДИНАТЫ ФРУКТА: x = " << thingX + 1 << ", y = " << thingY + 1 << endl;
 
-	usleep(150000);
+	usleep(speed);
 }
 
 void Input(){
@@ -119,10 +139,9 @@ void Input(){
 
 void Logic(){
 
-	int prevX = tailX[0], prevY = tailY[0];
-	int prev2X, prev2Y;
-
+	prevX = tailX[0]; prevY = tailY[0];
 	tailX[0] = x; tailY[0] = y;
+	
 
 	for (int i = 1; i < nTail; i++) {
 		prev2X = tailX[i]; prev2Y = tailY[i];
@@ -136,25 +155,22 @@ void Logic(){
 	if (dir == DOWN) y++;
 	if (dir == ENDGAME) {
 		system("clear");
-		Draw();
+		cout << "ВАШ СЧЕТ = " << score;
 		cout << "\nGAME OVER\n";
 		usleep(5000);
 		gameover = true;
 	}
 
-	if (x >= wigth) 
-		x = 0;
-	else if (x < 0)
-		x = wigth - 1;
-	if (y >= height) 
-		y = 0;
-	else if (y < 0)
-		y = height - 1;
+	if (x >= wigth)  x = 0;
+	else if (x < 0) x = wigth - 1;
+
+	if (y >= height)  y = 0;
+	else if (y < 0) y = height - 1;
 
     for (int i = 0; i < nTail; i++) {
     	if (tailX[i] == x && tailY[i] == y) {
     		system("clear");
-    		// Draw();
+    		cout << "ВАШ СЧЕТ = " << score;
     		cout << "\nGAME OVER\n";
 			usleep(5000);
 			gameover = true;
@@ -163,6 +179,8 @@ void Logic(){
 
     if (x == thingX && y == thingY) {
     	score += 10;
+    	speed -= harder;
+    	speed_level = nTail + harder / 1000;
     	thingX = rand() % wigth;
     	thingY = rand() % height;
     	nTail++;
@@ -170,21 +188,28 @@ void Logic(){
 }
 
 int main () {
-	Setup();
-
-	cout << "1 - НАЧАТЬ ИГРУ" <<
-	<< "2 - ПОСМОТРЕТЬ ТАБЛИЦУ РЕКОРДОВ" <<
-	<< "3 - ВЫБРАТЬ УРОВЕНЬ СЛОЖНОСТИ" <<
-	<< "0 - ВЫХОД" << endl;
-
-
-
-	while (!gameover) {
-		
-
-		Draw();
-		Input();
-		Logic();
+	while (true) {
+		Setup();
+		cout << "\n1 - НАЧАТЬ ИГРУ" 
+			 << "\n2 - ПОСМОТРЕТЬ ТАБЛИЦУ РЕКОРДОВ" 
+			 << "\n0 - ВЫХОД" << endl;
+			cout << "\nКОМАНДА: " ; command = failure();
+		if (command == 0) break;
+		else if (command == 1) {
+			cout << "\n1 - ПРОСТОЙ" 
+			 << "\n2 - СРЕДНИЙ" 
+			 << "\n3 - СЛОЖНЫЙ";
+			cout << "\nВАШ ВЫБОР: " ; int LVL = failure();
+			if (LVL == 1)  harder = 3000;
+			else if (LVL == 2) harder = 6000;
+			else if (LVL == 3) harder = 9000;
+			while (!gameover) {
+				Draw();
+				Input();
+				Logic();	
+			}
+		}
 	}
+
 	return 0;
 }
